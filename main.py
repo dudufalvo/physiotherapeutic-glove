@@ -1,6 +1,11 @@
 import cv2
 import time
 import HandTrackingModule as htm
+import serial
+import time
+
+ser = serial.Serial("COM15", 9600)
+ser.reset_input_buffer()
 
 lastMode = mode = 0
 
@@ -105,18 +110,19 @@ while True:
         elif fingers == [0, 1, 1, 1, 1]:
             mode = 32
 
+        currentTime = time.time()
         
-        if (mode != lastMode):
-            print(mode)
+        if (mode != lastMode) and (currentTime - previousTime > 1):
+            command = ['I', mode, ';']
+            for letter in command:
+                ser.write(bytes(str(letter), 'utf-8'))   
+            previousTime = currentTime 
+            
 
         lastMode = mode
 
-    currentTime = time.time()
-    fps = 1 / (currentTime - previousTime)
-    previousTime = currentTime
-
-    cv2.putText(img, f'FPS: {int(fps)}', (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
-    cv2.putText(img, f'MODE: {int(mode)}', (0, 60), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
+    cv2.putText(img, f'MODE: {int(mode)}', (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
+    
