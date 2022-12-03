@@ -7,7 +7,7 @@ import time
 ser = serial.Serial("COM15", 9600)
 ser.reset_input_buffer()
 
-lastMode = mode = 0
+lastMode = mode = ""
 
 wCam, hCam = 640, 480
 
@@ -43,85 +43,24 @@ while True:
         
         totalFingers = fingers.count(1)
 
-        # all fingers down
-        if fingers == [0, 0, 0, 0, 0]:
-            mode = 1
-            
-        # all fingers up
-        elif fingers == [1, 1, 1, 1, 1]:
-            mode = 2
-
-        elif totalFingers == 1:
-            for i in range(5):
-                if fingers[i] == 1:
-                    mode = i + 3
-
-        # 2 fingers up
-        elif fingers == [1, 1, 0, 0, 0]:
-            mode = 8
-        elif fingers == [1, 0, 1, 0, 0]:
-            mode = 9
-        elif fingers == [1, 0, 0, 1, 0]:
-            mode = 10
-        elif fingers == [1, 0, 0, 0, 1]:
-            mode = 11
-        elif fingers == [0, 1, 1, 0, 0]:
-            mode = 12
-        elif fingers == [0, 1, 0, 1, 0]:
-            mode = 13
-        elif fingers == [0, 1, 0, 0, 1]:
-            mode = 14
-        elif fingers == [0, 0, 1, 1, 0]:
-            mode = 15
-        elif fingers == [0, 0, 1, 0, 1]:
-            mode = 16
-        elif fingers == [0, 0, 0, 1, 1]:
-            mode = 17
-        # 3 fingers up
-        elif fingers == [1, 1, 1, 0, 0]:
-            mode = 18
-        elif fingers == [1, 1, 0, 1, 0]:
-            mode = 19
-        elif fingers == [1, 1, 0, 0, 1]:
-            mode = 20
-        elif fingers == [1, 0, 1, 1, 0]:
-            mode = 21
-        elif fingers == [1, 0, 1, 0, 1]:
-            mode = 22
-        elif fingers == [1, 0, 0, 1, 1]:
-            mode = 23
-        elif fingers == [0, 1, 1, 1, 0]:
-            mode = 24
-        elif fingers == [0, 1, 1, 0, 1]:
-            mode = 25
-        elif fingers == [0, 1, 0, 1, 1]:
-            mode = 26
-        elif fingers == [0, 0, 1, 1, 1]:
-            mode = 27
-        # 4 fingers up
-        elif fingers == [1, 1, 1, 1, 0]:
-            mode = 28
-        elif fingers == [1, 1, 1, 0, 1]:
-            mode = 29
-        elif fingers == [1, 1, 0, 1, 1]:
-            mode = 30
-        elif fingers == [1, 0, 1, 1, 1]:
-            mode = 31
-        elif fingers == [0, 1, 1, 1, 1]:
-            mode = 32
+        mode = ""
+        
+        for finger in fingers:
+            mode += str(finger)
 
         currentTime = time.time()
         
         if (mode != lastMode) and (currentTime - previousTime > 1):
             command = ['I', mode, ';']
             for letter in command:
-                ser.write(bytes(str(letter), 'utf-8'))   
+                for char in letter:
+                    ser.write(bytes(str(char), 'utf-8'))   
             previousTime = currentTime 
             
 
         lastMode = mode
 
-    cv2.putText(img, f'MODE: {int(mode)}', (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
+    cv2.putText(img, f'MODE: {mode}', (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
