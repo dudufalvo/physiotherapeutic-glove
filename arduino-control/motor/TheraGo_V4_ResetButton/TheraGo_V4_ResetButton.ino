@@ -1,4 +1,5 @@
 #include <AccelStepper.h>
+
 #define FULLSTEP   4
 #define HALFSTEP   8
 
@@ -27,7 +28,7 @@ AccelStepper stepper1(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
  
 void setup() {
   stepper1.setMaxSpeed(1000.0);
-  stepper1.setAcceleration(90.0);
+  stepper1.setAcceleration(100.0);
   stepper1.setSpeed(700);
 
   pinMode(buttonPin, INPUT);
@@ -112,8 +113,11 @@ bool buttonPressed() {
 
 void loop() {
   // in the first loop, the glove enters in the "wait for measure mode"
-  if (buttonLastCount == 0) {
-    moveMotor(stepper1, 25000, 1); //close
-    buttonLastCount++;
+  while (buttonLastCount == 0) {
+    Serial.println("press the button to start measuring the finger");
+    if(buttonPressed()) {
+      finger1Time = measureFinger(stepper1);
+      Serial.println("finger time = "+finger1Time);
+    } 
   }
 }

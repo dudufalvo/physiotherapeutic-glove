@@ -1,4 +1,6 @@
 #include <AccelStepper.h>
+#include <SoftwareSerial.h>
+
 #define FULLSTEP   4
 #define HALFSTEP   8
 
@@ -12,7 +14,7 @@
 #define motorPin4  11    // Orange - 28BYJ48 pin 4
 
 int finger1Time = 0;     // finger size measured in time to open/close
-int finger1Status = 1;   // 1 = open, 0 = closed
+int finger1Status = 0;   // 1 = open, 0 = closed
 
 int buttonState;
 int lastButtonState = LOW;
@@ -24,31 +26,75 @@ int buttonLastCount = 0;
 
 
 AccelStepper stepper1(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
- 
+
+SoftwareSerial BTSerial(50,51); // RX | TX
+char INBYTE;
+char BTBYTE;
+String messageBuffer = "";
+String message = "";
+
 void setup() {
   stepper1.setMaxSpeed(1000.0);
-  stepper1.setAcceleration(90.0);
+  stepper1.setAcceleration(100.0);
   stepper1.setSpeed(700);
 
   pinMode(buttonPin, INPUT);
   
   Serial.begin(9600);
+  BTSerial.begin(9600);
+
+  Serial.println("press the button to start measuring the finger");
+}
+
+void decodeMessage(String message) {
+  char mode = message.charAt(0);
+  Serial.println(mode);
+  Serial.println(message);
+  Serial.println(finger1Status);
+
+  // N MODE - normal switch mode
+  if ((mode == 'N') || (mode == 'I')) {
+    Serial.println(message.charAt(1));
+    if ((message.charAt(1) == '0') && (finger1Status == 1)) {
+      Serial.println("closing");
+      moveMotor(stepper1, finger1Time, 0); 
+    }
+    else if ((message.charAt(1) == '1') && (finger1Status == 0)) {
+      Serial.println("opening");
+      moveMotor(stepper1, finger1Time, 1);
+    }
+  }
+
+  // R MODE - repetition mode
+  else if (mode == 'R') {
+    char repeatsMode = message.charAt(1);
+    char runStatus = message.charAt(2);
+    char repetitions = message.charAt(3);
+  }
 }
 
 void moveMotor(AccelStepper stepper, int ftime, int fstatus){
+  Serial.println(ftime);
+  Serial.println(fstatus);
+  
   int initialTime = millis();
   if(fstatus == 1) {
+    digitalWrite(greenLed, HIGH);
     while(millis()-initialTime <= ftime) {
         stepper.move(stepper.currentPosition()+1);
         stepper.run();
     }
+    digitalWrite(greenLed, LOW);
   }
   if(fstatus == 0) {
+    digitalWrite(redLed, HIGH);
     while(millis()-initialTime <= ftime) {
         stepper.move(stepper.currentPosition()-1);
         stepper.run();
     }
+    digitalWrite(redLed, LOW);
   }
+  finger1Status = fstatus;
 }
 
 void initialPosition(AccelStepper stepper, int ftime, int fstatus) {
@@ -112,8 +158,25 @@ bool buttonPressed() {
 
 void loop() {
   // in the first loop, the glove enters in the "wait for measure mode"
-  if (buttonLastCount == 0) {
-    moveMotor(stepper1, 25000, 1); //close
-    buttonLastCount++;
+  while (buttonLastCount == 0) {
+    if(buttonPressed()) {
+      finger1Time = measureFinger(stepper1);
+      Serial.println(finger1Time);
+    } 
   }
+  while (BTSerial.available()) {
+    Serial.println("bluetooth mode");
+    BTBYTE = BTSerial.read();
+    messageBuffer += BTBYTE;
+    if (BTBYTE == ';'){
+      message = messageBuffer;
+      messageBuffer = "";
+      decodeMessage(message);
+    }
+  } 
+  if (Serial.available()) {
+    INBYTE = Serial.read();
+    BTSerial.println(INBYTE);
+  }
+  delay(50);
 }
