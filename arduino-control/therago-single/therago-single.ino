@@ -1,5 +1,6 @@
 #include <AccelStepper.h>
 #include <SoftwareSerial.h>
+#include <LiquidCrystal.h>
 
 #define FULLSTEP   4
 #define HALFSTEP   8
@@ -26,8 +27,9 @@ int buttonLastCount = 0;
 
 
 AccelStepper stepper1(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
-
 SoftwareSerial BTSerial(50,51); // RX | TX
+LiquidCrystal lcd(22, 24, 32, 30, 28, 26);
+
 char INBYTE;
 char BTBYTE;
 String messageBuffer = "";
@@ -35,17 +37,25 @@ String message = "";
 
 void setup() {
   stepper1.setMaxSpeed(1000.0);
-  stepper1.setAcceleration(100.0);
+  stepper1.setAcceleration(40.0);
   stepper1.setSpeed(700);
 
   pinMode(buttonPin, INPUT);
-  pinMode(greenLed, INPUT);
-  pinMode(redLed, INPUT);
+  pinMode(greenLed, OUTPUT);
+  pinMode(redLed, OUTPUT);
   
   Serial.begin(9600);
   BTSerial.begin(9600);
+  lcd.begin(16, 2);
 
   Serial.println("press the button to start measuring the finger");
+  lcd.print("   THERA_GO");
+  delay(5000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("PRESS THE BUTTON");
+  lcd.setCursor(0, 1);
+  lcd.print("TO START MEASURE");
 }
 
 void decodeMessage(String message) {
@@ -54,6 +64,18 @@ void decodeMessage(String message) {
  
   // N MODE - normal switch mode
   if ((mode == 'N') || (mode == 'I')) {
+
+    if(mode == 'N') {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("    APP MODE");
+    }
+    else {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("     IR MODE");
+    }
+    
     Serial.println(message.charAt(1));
     if ((message.charAt(1) == '0') && (finger1Status == 1)) {
       Serial.println("closing");
@@ -76,6 +98,11 @@ void decodeMessage(String message) {
 void moveMotor(AccelStepper stepper, int ftime, int fstatus){
   long initialTime = millis();
   if(fstatus == 1) {
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,1);
+    lcd.print("   OPENING...");
+    
     digitalWrite(greenLed, HIGH);
     while(millis()-initialTime <= ftime) {
       stepper.move(stepper.currentPosition()+1);
@@ -84,6 +111,11 @@ void moveMotor(AccelStepper stepper, int ftime, int fstatus){
     digitalWrite(greenLed, LOW);
   }
   if(fstatus == 0) {
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,1);
+    lcd.print("   CLOSING...");
+    
     digitalWrite(redLed, HIGH);
     while(millis()-initialTime <= ftime) {
       stepper.move(stepper.currentPosition()-1);
@@ -106,6 +138,11 @@ void initialPosition(AccelStepper stepper, int ftime) {
 
 int measureFinger(AccelStepper stepper) {
   Serial.println("measuring finger");
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("  MEASURING...");
+  
   int initialTime = millis();
   digitalWrite(redLed, HIGH);
   digitalWrite(greenLed, HIGH);
@@ -116,6 +153,13 @@ int measureFinger(AccelStepper stepper) {
         digitalWrite(redLed, LOW);
         digitalWrite(greenLed, LOW);
         Serial.println("finished measuring");
+
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("    MEASURED");
+        lcd.setCursor(0,1);
+        lcd.print("  SUCCESSFULLY");
+              
         return (millis()-initialTime);
     }
   }

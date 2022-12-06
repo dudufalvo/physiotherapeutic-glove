@@ -27,7 +27,7 @@ AccelStepper stepper1(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
  
 void setup() {
   stepper1.setMaxSpeed(1000.0);
-  stepper1.setAcceleration(90.0);
+  stepper1.setAcceleration(45.0);
   stepper1.setSpeed(700);
 
   pinMode(buttonPin, INPUT);
