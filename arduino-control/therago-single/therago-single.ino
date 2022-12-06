@@ -39,6 +39,8 @@ void setup() {
   stepper1.setSpeed(700);
 
   pinMode(buttonPin, INPUT);
+  pinMode(greenLed, INPUT);
+  pinMode(redLed, INPUT);
   
   Serial.begin(9600);
   BTSerial.begin(9600);
@@ -47,11 +49,9 @@ void setup() {
 }
 
 void decodeMessage(String message) {
+   Serial.println("message: "+message);
   char mode = message.charAt(0);
-  Serial.println(mode);
-  Serial.println(message);
-  Serial.println(finger1Status);
-
+ 
   // N MODE - normal switch mode
   if ((mode == 'N') || (mode == 'I')) {
     Serial.println(message.charAt(1));
@@ -74,32 +74,29 @@ void decodeMessage(String message) {
 }
 
 void moveMotor(AccelStepper stepper, int ftime, int fstatus){
-  Serial.println(ftime);
-  Serial.println(fstatus);
-  
-  int initialTime = millis();
+  long initialTime = millis();
   if(fstatus == 1) {
     digitalWrite(greenLed, HIGH);
     while(millis()-initialTime <= ftime) {
-        stepper.move(stepper.currentPosition()+1);
-        stepper.run();
+      stepper.move(stepper.currentPosition()+1);
+      stepper.run();
     }
     digitalWrite(greenLed, LOW);
   }
   if(fstatus == 0) {
     digitalWrite(redLed, HIGH);
     while(millis()-initialTime <= ftime) {
-        stepper.move(stepper.currentPosition()-1);
-        stepper.run();
+      stepper.move(stepper.currentPosition()-1);
+      stepper.run();
     }
     digitalWrite(redLed, LOW);
   }
   finger1Status = fstatus;
 }
 
-void initialPosition(AccelStepper stepper, int ftime, int fstatus) {
-  int initialTime = millis();
-  if(fstatus == 0) {
+void initialPosition(AccelStepper stepper, int ftime) {
+  long initialTime = millis();
+  if(finger1Status == 0) {
     while(millis()-initialTime <= ftime) {
         stepper.move(stepper.currentPosition()-1);
         stepper.run();
