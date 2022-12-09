@@ -92,6 +92,19 @@ void decodeMessage(String message) {
     char repeatsMode = message.charAt(1);
     char runStatus = message.charAt(2);
     char repetitions = message.charAt(3);
+
+    if(runStatus == '1') {
+    for(int i=0; i<=atoi(repetitions); i++) {
+      if(finger1Status == 1) {
+        moveMotor(stepper1, finger1Time, 0);
+        moveMotor(stepper1, finger1Time, 1);
+      }
+      else {
+        moveMotor(stepper1, finger1Time, 1);
+        moveMotor(stepper1, finger1Time, 0);
+      }
+    }  
+    }
   }
 }
 
@@ -109,6 +122,10 @@ void moveMotor(AccelStepper stepper, int ftime, int fstatus){
       stepper.run();
     }
     digitalWrite(greenLed, LOW);
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,1);
+    lcd.print("   OPENED!");
   }
   if(fstatus == 0) {
     lcd.setCursor(0,1);
@@ -121,6 +138,10 @@ void moveMotor(AccelStepper stepper, int ftime, int fstatus){
       stepper.move(stepper.currentPosition()-1);
       stepper.run();
     }
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,1);
+    lcd.print("   CLOSED!");
     digitalWrite(redLed, LOW);
   }
   finger1Status = fstatus;
