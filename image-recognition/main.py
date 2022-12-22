@@ -47,18 +47,12 @@ while True:
         
         for finger in fingers:
             mode += str(finger)
-
-        currentTime = time.time()
         
-        if (mode != lastMode) and (currentTime - previousTime > 1):
-            command = ['I', mode, ';']
-            for letter in command:
-                for char in letter:
-                    ser.write(bytes(str(char), 'utf-8'))   
-            previousTime = currentTime 
-            
+        currentTime = time.time()
 
-        lastMode = mode
+        if(mode != lastMode) and (currentTime - previousTime > 1):
+            command = ['I', mode, ';']
+            
 
     cv2.putText(img, f'MODE: {mode}', (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
 

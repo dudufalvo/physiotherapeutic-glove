@@ -68,7 +68,7 @@ void decodeMessage(String message) {
     if(mode == 'N') {
       lcd.clear();
       lcd.setCursor(0,0);
-      lcd.print("    APP MODE");
+      lcd.print("    SWT MODE");
     }
     else {
       lcd.clear();
@@ -89,12 +89,14 @@ void decodeMessage(String message) {
 
   // R MODE - repetition mode
   else if (mode == 'R') {
-    char repeatsMode = message.charAt(1);
-    char runStatus = message.charAt(2);
-    char repetitions = message.charAt(3);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("    REP MODE");
+    char runStatus = message.charAt(1);
+    char repetitions = message.charAt(2);
 
     if(runStatus == '1') {
-    for(int i=0; i<=atoi(repetitions); i++) {
+    for(int i=0; i<=atoi(repetitions)+1; i++) {
       if(finger1Status == 1) {
         moveMotor(stepper1, finger1Time, 0);
         moveMotor(stepper1, finger1Time, 1);
@@ -125,7 +127,7 @@ void moveMotor(AccelStepper stepper, int ftime, int fstatus){
     lcd.setCursor(0,1);
     lcd.print("                ");
     lcd.setCursor(0,1);
-    lcd.print("   OPENED!");
+    lcd.print("    OPENED!");
   }
   if(fstatus == 0) {
     lcd.setCursor(0,1);
@@ -141,7 +143,7 @@ void moveMotor(AccelStepper stepper, int ftime, int fstatus){
     lcd.setCursor(0,1);
     lcd.print("                ");
     lcd.setCursor(0,1);
-    lcd.print("   CLOSED!");
+    lcd.print("    CLOSED!");
     digitalWrite(redLed, LOW);
   }
   finger1Status = fstatus;
@@ -164,7 +166,7 @@ int measureFinger(AccelStepper stepper) {
   lcd.setCursor(0,0);
   lcd.print("  MEASURING...");
   
-  int initialTime = millis();
+  long initialTime = millis();
   digitalWrite(redLed, HIGH);
   digitalWrite(greenLed, HIGH);
   while(true) {
